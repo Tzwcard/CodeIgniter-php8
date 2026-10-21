@@ -66,6 +66,8 @@ The framework only calls them on older PHP versions:
 
 * `system/libraries/Image_lib.php` — all `imagedestroy()` calls go through the
   new `_destroy_gd()` helper (`PHP_VERSION_ID < 80500`).
+* `system/helpers/captcha_helper.php` — the CAPTCHA image handle is only freed
+  with `ImageDestroy()` on PHP < 8.5.
 * `system/libraries/Upload.php` — `finfo_close()` is guarded (`< 80500`).
 * `system/libraries/Xmlrpc.php` — `xml_parser_free()` calls go through
   `_free_xml_parser()` (`< 80500`); `system/libraries/Xmlrpcs.php` uses the same
