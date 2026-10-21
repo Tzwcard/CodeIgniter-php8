@@ -344,11 +344,14 @@ if ( ! function_exists('highlight_code'))
 			array(
 				'/<span style="color: #([A-Z0-9]+)">&lt;\?php(&nbsp;| )/i',
 				'/(<span style="color: #[A-Z0-9]+">.*?)\?&gt;<\/span>\n<\/span>\n<\/code>/is',
+				// PHP 8.3+ uses <pre><code style="..."> and emits no newlines
+				'/(<span style="color: #[A-Z0-9]+">.*?) ?\?&gt;<\/span><\/code><\/pre>/is',
 				'/<span style="color: #[A-Z0-9]+"\><\/span>/i'
 			),
 			array(
 				'<span style="color: #$1">',
 				"$1</span>\n</span>\n</code>",
+				"$1</span></code></pre>",
 				''
 			),
 			$str

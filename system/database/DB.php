@@ -148,6 +148,14 @@ function &DB($params = '')
 		show_error('You have not selected a database type to connect to.');
 	}
 
+	// The mssql extension was removed in PHP 7.0 and cannot be emulated by
+	// the sqlsrv driver, so fail with a useful message instead of an
+	// "undefined function" fatal.
+	if (strtolower($params['dbdriver']) === 'mssql')
+	{
+		show_error('The mssql database driver is not available on PHP 8. Use the sqlsrv or pdo/sqlsrv driver instead.');
+	}
+
 	require_once(BASEPATH.'database/DB_driver.php');
 	require_once(BASEPATH.'database/DB_query_builder.php');
 	if ( ! class_exists('CI_DB', FALSE))

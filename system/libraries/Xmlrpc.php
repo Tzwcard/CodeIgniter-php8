@@ -553,6 +553,41 @@ class CI_Xmlrpc {
 		return new XML_RPC_Response($this->values_parsing($response));
 	}
 
+	// --------------------------------------------------------------------
+
+	/**
+	 * Array key for a parser's state
+	 *
+	 * XML parsers are resources before PHP 8 and objects afterwards, and
+	 * objects cannot be cast to string.
+	 *
+	 * @param	resource|\XMLParser	$parser
+	 * @return	string|int
+	 */
+	protected function _parser_key($parser)
+	{
+		return is_object($parser) ? spl_object_id($parser) : (string) $parser;
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Free an XML parser
+	 *
+	 * xml_parser_free() has been a no-op since PHP 8.0 and is deprecated
+	 * as of PHP 8.5. It is only called on older versions.
+	 *
+	 * @param	resource|\XMLParser	$parser
+	 * @return	void
+	 */
+	protected function _free_xml_parser($parser)
+	{
+		if (PHP_VERSION_ID < 80500)
+		{
+			xml_parser_free($parser);
+		}
+	}
+
 } // END XML_RPC Class
 
 /**
@@ -1151,7 +1186,7 @@ class XML_RPC_Message extends CI_Xmlrpc
 		//-------------------------------------
 
 		$parser = xml_parser_create($this->xmlrpc_defencoding);
-		$pname = (string) $parser;
+		$pname = $this->_parser_key($parser);
 		$this->xh[$pname] = array(
 			'isf'		=> 0,
 			'ac'		=> '',
@@ -1161,10 +1196,9 @@ class XML_RPC_Message extends CI_Xmlrpc
 			'isf_reason'	=> 0
 		);
 
-		xml_set_object($parser, $this);
 		xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, TRUE);
-		xml_set_element_handler($parser, 'open_tag', 'closing_tag');
-		xml_set_character_data_handler($parser, 'character_data');
+		xml_set_element_handler($parser, array($this, 'open_tag'), array($this, 'closing_tag'));
+		xml_set_character_data_handler($parser, array($this, 'character_data'));
 		//xml_set_default_handler($parser, 'default_handler');
 
 		// Get headers
@@ -1187,10 +1221,10 @@ class XML_RPC_Message extends CI_Xmlrpc
 						xml_get_current_line_number($parser));
 
 			$r = new XML_RPC_Response(0, $this->xmlrpcerr['invalid_return'], $this->xmlrpcstr['invalid_return']);
-			xml_parser_free($parser);
+			$this->_free_xml_parser($parser);
 			return $r;
 		}
-		xml_parser_free($parser);
+		$this->_free_xml_parser($parser);
 
 		// Got ourselves some badness, it seems
 		if ($this->xh[$pname]['isf'] > 1)
@@ -1279,7 +1313,7 @@ class XML_RPC_Message extends CI_Xmlrpc
 	 */
 	public function open_tag($the_parser, $name)
 	{
-		$the_parser = (string) $the_parser;
+		$the_parser = $this->_parser_key($the_parser);
 
 		// If invalid nesting, then return
 		if ($this->xh[$the_parser]['isf'] > 1) return;
@@ -1380,7 +1414,7 @@ class XML_RPC_Message extends CI_Xmlrpc
 	 */
 	public function closing_tag($the_parser, $name)
 	{
-		$the_parser = (string) $the_parser;
+		$the_parser = $this->_parser_key($the_parser);
 
 		if ($this->xh[$the_parser]['isf'] > 1) return;
 
@@ -1514,7 +1548,7 @@ class XML_RPC_Message extends CI_Xmlrpc
 	 */
 	public function character_data($the_parser, $data)
 	{
-		$the_parser = (string) $the_parser;
+		$the_parser = $this->_parser_key($the_parser);
 
 		if ($this->xh[$the_parser]['isf'] > 1) return; // XML Fault found already
 

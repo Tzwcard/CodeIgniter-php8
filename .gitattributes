@@ -21,3 +21,8 @@ tests/travis/ export-ignore
 # User Guide source files and compiled files
 user_guide_src export-ignore
 user_guide export-ignore
+
+# Keep PHP sources and test fixtures LF on every platform. Several test
+# fixtures compare heredoc contents byte-for-byte and fail when Git checks
+# them out with CRLF on Windows.
+*.php text eol=lf

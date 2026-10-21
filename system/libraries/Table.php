@@ -87,6 +87,13 @@ class CI_Table {
 	public $template	= NULL;
 
 	/**
+	 * Default template used to fill in missing keys
+	 *
+	 * @var array
+	 */
+	public $temp		= array();
+
+	/**
 	 * Newline setting
 	 *
 	 * @var string

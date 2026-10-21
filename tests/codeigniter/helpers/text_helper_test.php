@@ -101,7 +101,16 @@ class Text_helper_test extends CI_TestCase {
 
 	public function test_highlight_code()
 	{
-		$expect = "<code><span style=\"color: #000000\">\n<span style=\"color: #0000BB\">&lt;?php&nbsp;var_dump</span><span style=\"color: #007700\">(</span><span style=\"color: #0000BB\">\$this</span><span style=\"color: #007700\">);&nbsp;</span><span style=\"color: #0000BB\">?&gt;&nbsp;</span>\n</span>\n</code>";
+		if (PHP_VERSION_ID >= 80300)
+		{
+			// highlight_string() wraps its output in <pre><code> and emits
+			// no newlines as of PHP 8.3.
+			$expect = '<pre><code style="color: #000000"><span style="color: #0000BB">&lt;?php var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$this</span><span style="color: #007700">); </span><span style="color: #0000BB">?&gt;</span></code></pre>';
+		}
+		else
+		{
+			$expect = "<code><span style=\"color: #000000\">\n<span style=\"color: #0000BB\">&lt;?php&nbsp;var_dump</span><span style=\"color: #007700\">(</span><span style=\"color: #0000BB\">\$this</span><span style=\"color: #007700\">);&nbsp;</span><span style=\"color: #0000BB\">?&gt;&nbsp;</span>\n</span>\n</code>";
+		}
 
 		$this->assertEquals($expect, highlight_code('<?php var_dump($this); ?>'));
 	}

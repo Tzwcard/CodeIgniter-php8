@@ -290,6 +290,13 @@ class CI_Image_lib {
 	public $dest_folder		= '';
 
 	/**
+	 * Destination image file name
+	 *
+	 * @var string
+	 */
+	public $dest_image		= '';
+
+	/**
 	 * Image mime-type
 	 *
 	 * @var string
@@ -833,8 +840,8 @@ class CI_Image_lib {
 		}
 
 		// Kill the file handles
-		imagedestroy($dst_img);
-		imagedestroy($src_img);
+		$this->_destroy_gd($dst_img);
+		$this->_destroy_gd($src_img);
 
 		if ($this->dynamic_output !== TRUE)
 		{
@@ -1042,8 +1049,8 @@ class CI_Image_lib {
 		}
 
 		// Kill the file handles
-		imagedestroy($dst_img);
-		imagedestroy($src_img);
+		$this->_destroy_gd($dst_img);
+		$this->_destroy_gd($src_img);
 
 		chmod($this->full_dst_path, $this->file_permissions);
 
@@ -1121,7 +1128,7 @@ class CI_Image_lib {
 		}
 
 		// Kill the file handles
-		imagedestroy($src_img);
+		$this->_destroy_gd($src_img);
 
 		chmod($this->full_dst_path, $this->file_permissions);
 
@@ -1251,8 +1258,8 @@ class CI_Image_lib {
 			return FALSE;
 		}
 
-		imagedestroy($src_img);
-		imagedestroy($wm_img);
+		$this->_destroy_gd($src_img);
+		$this->_destroy_gd($wm_img);
 
 		return TRUE;
 	}
@@ -1422,7 +1429,7 @@ class CI_Image_lib {
 			$this->image_save_gd($src_img);
 		}
 
-		imagedestroy($src_img);
+		$this->_destroy_gd($src_img);
 
 		return TRUE;
 	}
@@ -1603,6 +1610,25 @@ class CI_Image_lib {
 				break;
 			default:	echo 'Unable to display the image';
 				break;
+		}
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Free a GD image
+	 *
+	 * imagedestroy() has been a no-op since PHP 8.0 and is deprecated in
+	 * PHP 8.5. It is only called on older versions.
+	 *
+	 * @param	resource|\GdImage	$image
+	 * @return	void
+	 */
+	protected function _destroy_gd($image)
+	{
+		if (PHP_VERSION_ID < 80500)
+		{
+			imagedestroy($image);
 		}
 	}
 
