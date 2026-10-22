@@ -158,9 +158,12 @@ formats log lines with `date()`, so on a fresh PHP 8.x install every log entry
 can shift by the deployment's UTC offset even though the framework itself is
 working.
 
-`index.php` now calls `date_default_timezone_set('Asia/Shanghai')` before the
-framework boots. Change the argument to the application's real local timezone.
-Check this first whenever log timestamps look wrong after a PHP upgrade.
+`index.php` now detects the system timezone (`/etc/timezone`, the
+`/etc/localtime` symlink, then the `TZ` environment variable) and applies it
+before the framework boots. An explicit non-UTC `date.timezone` in php.ini
+still takes precedence; an explicit `UTC` is indistinguishable from PHP's
+fallback and is replaced by the system zone. Check this first whenever log
+timestamps look wrong after a PHP upgrade.
 
 ## Applying this base to an existing CodeIgniter 3 application
 

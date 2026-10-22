@@ -87,13 +87,37 @@ switch (ENVIRONMENT)
  * DEFAULT TIMEZONE
  *---------------------------------------------------------------
  *
- * PHP falls back to UTC when php.ini leaves date.timezone unset, which
- * silently shifts CodeIgniter's date()-based log timestamps. Set the
- * application's local timezone before the framework boots.
- *
- * Change this to your deployment's timezone.
+ * PHP falls back to UTC when php.ini leaves date.timezone unset; it does not
+ * consult the operating system. When that fallback is in effect, detect the
+ * system timezone so CodeIgniter's date()-based log timestamps stay local.
+ * An explicit non-UTC date.timezone is left alone.
  */
-date_default_timezone_set('Asia/Shanghai');
+if (date_default_timezone_get() === 'UTC')
+{
+	$candidates = array();
+
+	if (is_readable('/etc/timezone'))
+	{
+		$candidates[] = trim(file_get_contents('/etc/timezone'));
+	}
+
+	if (($localtime = @readlink('/etc/localtime')) !== FALSE
+		&& ($zoneinfo = strpos($localtime, 'zoneinfo/')) !== FALSE)
+	{
+		$candidates[] = substr($localtime, $zoneinfo + 9);
+	}
+
+	$candidates[] = getenv('TZ');
+
+	foreach ($candidates as $timezone)
+	{
+		if (is_string($timezone) && in_array($timezone, timezone_identifiers_list(), TRUE))
+		{
+			date_default_timezone_set($timezone);
+			break;
+		}
+	}
+}
 
 /*
  *---------------------------------------------------------------
