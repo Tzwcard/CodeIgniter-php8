@@ -7,6 +7,15 @@ the same base to an existing CodeIgniter 3 application.
 This is a framework-level port. No application code is included; the bundled
 `application/` directory is still the stock CodeIgniter 3 welcome app.
 
+> [!WARNING]
+> **Emergency LLM-assisted patch.**
+> These changes were written by an LLM and checked with lint, static analysis,
+> the PHPUnit suite, and runtime smoke tests, but they are not a security
+> review. This base is a stop-gap for moving an existing CodeIgniter 3
+> application onto a supported PHP runtime. Perform a proper migration to a
+> maintained framework (CodeIgniter 4 or another supported option) and retire
+> this base afterwards.
+
 ## Target and verified environment
 
 | Item | Value |
@@ -142,13 +151,25 @@ wrappers, so `highlight_code()` keeps returning the historical
   line-ending-sensitive test fixtures (heredocs) behave the same on Windows as
   on CI.
 
+### 11. Default timezone and log timestamps
+
+PHP falls back to `UTC` when `php.ini` has no `date.timezone`. CodeIgniter 3
+formats log lines with `date()`, so on a fresh PHP 8.x install every log entry
+can shift by the deployment's UTC offset even though the framework itself is
+working.
+
+`index.php` now calls `date_default_timezone_set('Asia/Shanghai')` before the
+framework boots. Change the argument to the application's real local timezone.
+Check this first whenever log timestamps look wrong after a PHP upgrade.
+
 ## Applying this base to an existing CodeIgniter 3 application
 
 1. Replace your `system/` directory with the one from this repository. Keep your
    `application/`, `assets/`, and entry-point customizations.
 2. Keep (or merge) your top-level `index.php`. If you use a customized
    `index.php`, remove `E_STRICT` from the `production`/`testing`
-   `error_reporting()` mask.
+   `error_reporting()` mask, and set the application's default timezone
+   (`date_default_timezone_set(...)`) before the framework boots.
 3. Ensure these extensions are available: `mysqli`, `mbstring`, `openssl`,
    `session`, `tokenizer`, `xml`, and `fileinfo` (for upload MIME detection).
    `gd` is only needed if you use `Image_lib`.
@@ -168,6 +189,12 @@ wrappers, so `highlight_code()` keeps returning the historical
    * Change `array $x = NULL` to `?array $x = NULL`.
    * Declare properties or add `#[\AllowDynamicProperties]` to your own classes
      that rely on dynamic properties.
+   * Check model filenames on case-sensitive filesystems. The loader looks for
+     `ucfirst($name).'.php'` and matches the rest of the filename
+     case-sensitively; projects developed on Windows often call
+     `load->model('FooModel')` while `Foomodel.php` is on disk. Fix this with an
+     `application/core/MY_Loader.php` override that resolves the on-disk
+     spelling and keeps the caller's name as the property alias.
 6. Run the test suite (or at least your application smoke tests) with
    `error_reporting(E_ALL)` and a deprecation-to-exception handler so remaining
    PHP 8.x notices surface early.

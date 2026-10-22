@@ -8,6 +8,15 @@ The upstream CodeIgniter 3 branch is in maintenance mode and still targets PHP
 while removing the framework's PHP 8.x fatal errors and deprecations, so legacy
 CI3 applications can be moved onto a supported PHP runtime without a rewrite.
 
+> [!WARNING]
+> **Emergency LLM-generated fix — stop-gap only.**
+> This fork was patched by an LLM, not by the CodeIgniter maintainers. The
+> changes are mechanical PHP 8.5 compatibility fixes and have not received a
+> security audit. The base is not maintained and gets no security updates.
+> Use it only to keep an existing CodeIgniter 3 application running while you
+> plan a proper migration to a maintained framework (CodeIgniter 4 or another
+> supported option). Do not build new projects on it.
+
 > Not affiliated with or endorsed by the CodeIgniter Foundation.
 > The original upstream readme is preserved in [`readme.rst`](readme.rst).
 
@@ -49,6 +58,9 @@ There is no application-specific code here.
 * Runtime smoke tests cover routing, loaders, helpers, sessions, encryption,
   XML-RPC, uploads, pagination, calendars, and validation without emitting
   notices or deprecations.
+* **Not a long-term base.** This is an emergency LLM-generated patch, not a
+  maintained release. Perform a proper migration to a supported framework and
+  retire this base once the application no longer needs it.
 
 See the *Verification* and *Known limitations* sections of
 [`PHP85-MIGRATION.md`](PHP85-MIGRATION.md) for details.
